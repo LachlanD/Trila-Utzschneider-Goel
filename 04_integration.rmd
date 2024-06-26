@@ -1,0 +1,241 @@
+---
+title: "03_integration"
+author: "Lachlan Dryburgh"
+date: "2024-05-23"
+output: html_document
+---
+
+```{r}
+library(Seurat)
+library(SeuratWrappers)
+
+
+seu_cd8 <- readRDS('../output/cd8.rds')
+seu_cd8 <- subset(seu_cd8, subset = seurat_clusters %in% c(0,1,2,4,5,6))
+seu_cd8 <- subset(seu_cd8, subset = orig.ident != "c71_single")
+seu_cd8 <- JoinLayers(seu_cd8)
+seu_cd8@meta.data$study <- "tumour"
+
+seu_lcmv <- readRDS('~/projects/Utzschneider_Goel_PM_SC/output/seu_filt.Rds')
+
+TRM = read.csv('~/projects/Mackay_Breast_Cancer/Luke/Results/8/BC_breast_pseudo-bulk_sig_unique-TRM-vs-all_filtered.txt', sep = '\t')
+
+seu_lcmv@meta.data$study <- "lcmv"
+seu_lcmv@meta.data$percent_mito <- seu_lcmv@meta.data$percent.mt
+
+DimPlot(seu_cd8)
+DimPlot(seu_lcmv)
+
+
+FeaturePlot(seu_lcmv, features = 'Pdcd1')
+```
+
+
+```{r}
+merged <- merge(seu_cd8, seu_lcmv)
+
+#merged <- JoinLayers(merged)
+#merged[["RNA"]] <- split(merged[["RNA"]], f = merged$orig.ident)
+
+merged <- NormalizeData(merged)
+merged <- FindVariableFeatures(merged)
+merged <- ScaleData(merged)
+
+merged <- RunPCA(merged)
+merged <- RunUMAP(merged, dims = 1:20)
+DimPlot(merged, group.by = 'study', label = T)
+
+options(future.globals.maxSize = 8000 * 1024^2)
+
+merged <- IntegrateLayers(
+  object = merged, method = RPCAIntegration,
+  orig.reduction = "pca", new.reduction = "integrated.rpca",
+  verbose = FALSE
+)
+
+# merged <- IntegrateLayers(
+#   object = merged, method = HarmonyIntegration,
+#   orig.reduction = "pca", new.reduction = "harmony",
+#   verbose = FALSE
+# )
+
+# merged <- IntegrateLayers(
+#   object = merged, method = CCAIntegration,
+#   orig.reduction = "pca", new.reduction = "cca", assay = 'RNA',
+#   verbose = FALSE
+# )
+
+
+# merged <- IntegrateLayers(
+#   object = merged, method = FastMNNIntegration,
+#   new.reduction = "integrated.mnn",
+#   verbose = FALSE
+# )
+
+# merged <- IntegrateLayers(
+#   object = merged, method = JointPCAIntegration,
+#   new.reduction = "jpca",
+#   verbose = FALSE
+# )
+
+
+
+merged <- RunUMAP(merged, reduction = "integrated.rpca", dims = 1:20, reduction.name = 'rpca.umap')
+# merged <- RunUMAP(merged, reduction = "harmony", dims = 1:20, reduction.name = 'harmony.umap')
+#merged <- RunUMAP(merged, reduction = "cca", dims = 1:20, reduction.name = 'cca.umap')
+# merged <- RunUMAP(merged, reduction = "integrated.mnn", dims = 1:20, reduction.name = 'mnn.umap')
+# merged <- RunUMAP(merged, reduction = "jpca", dims = 1:20, reduction.name = 'jpca.umap')
+```
+
+```{r}
+DimPlot(merged, reduction = "rpca.umap", group.by = 'orig.ident', label =T)
+DimPlot(merged, reduction = "rpca.umap", group.by = 'study', label =T)
+# DimPlot(merged, reduction = "harmony.umap", group.by = 'orig.ident', label =T)
+# DimPlot(merged, reduction = "harmony.umap", group.by = 'study', label =T)
+# DimPlot(merged, reduction = "cca.umap", group.by = 'orig.ident', label =T)
+# DimPlot(merged, reduction = "cca.umap", group.by = 'study', label =T)
+# DimPlot(merged, reduction = "cca.umap", group.by = 'orig.ident', split.by = 'study', label =T)
+
+# DimPlot(merged, reduction = "mnn.umap", group.by = 'study', label =T)
+# DimPlot(merged, reduction = "jpca.umap", group.by = 'study', label =T)
+
+FeaturePlot(merged, features = 'Cd8a', reduction = "rpca.umap")
+
+DimPlot(merged, reduction = "rpca.umap", group.by = 'cluster2', label =T) +
+DimPlot(merged, reduction = "rpca.umap", group.by = 'orig.ident', label =T)
+
+DimPlot(merged, reduction = "rpca.umap", group.by = 'cluster2', label =T)
+```
+```{r}
+# FeaturePlot(merged, reduction = "harmony.umap", features = "Cd69")
+# FeaturePlot(merged, reduction = "harmony.umap", features = "Itgae")
+# FeaturePlot(merged, reduction = "harmony.umap", features = "Itga4")
+# FeaturePlot(merged, reduction = "harmony.umap", features = "S100a4")
+# FeaturePlot(merged, reduction = "harmony.umap", features = "Gzma")
+# FeaturePlot(merged, reduction = "harmony.umap", features = "Gzmb")
+# FeaturePlot(merged, reduction = "harmony.umap", features = "Tcf7")
+# FeaturePlot(merged, reduction = "harmony.umap", features = "Pdcd1")
+# FeaturePlot(merged, reduction = "harmony.umap", features = "Havcr2")
+# FeaturePlot(merged, reduction = "harmony.umap", features = "Ccr7")
+# FeaturePlot(merged, reduction = "harmony.umap", features = "Id3")
+# FeaturePlot(merged, reduction = "harmony.umap", features = "Tox")
+# FeaturePlot(merged, reduction = "harmony.umap", features = "Ms4a4b")
+# FeaturePlot(merged, reduction = "harmony.umap", features = "Cxcr3")
+FeaturePlot(merged, reduction = "rpca.umap", features = "Irf7")
+FeaturePlot(merged, reduction = "rpca.umap", features = "Klf2")
+FeaturePlot(merged, reduction = "rpca.umap", features = "Prdm1")
+
+FeaturePlot(merged, reduction = "rpca.umap", features = "Cd8a")
+FeaturePlot(merged, reduction = "rpca.umap", features = "Tox")
+FeaturePlot(merged, reduction = "rpca.umap", features = "Cd69")
+FeaturePlot(merged, reduction = "rpca.umap", features = "Itgae")
+FeaturePlot(merged, reduction = "rpca.umap", features = "Klf2")
+FeaturePlot(merged, reduction = "rpca.umap", features = "Id3")
+FeaturePlot(merged, reduction = "rpca.umap", features = "Zfp683")
+FeaturePlot(merged, reduction = "rpca.umap", features = "Cd44")
+FeaturePlot(merged, reduction = "rpca.umap", features = "Sell")
+FeaturePlot(merged, reduction = "rpca.umap", features = "Itga4")
+FeaturePlot(merged, reduction = "rpca.umap", features = "Gzmb")
+FeaturePlot(merged, reduction = "rpca.umap", features = "Ccr7")
+FeaturePlot(merged, reduction = "rpca.umap", features = "Gzmb")
+FeaturePlot(merged, reduction = "rpca.umap", features = "Pdcd1")
+
+
+
+
+
+#FeaturePlot(merged, reduction = "harmony.umap", features = "percent_mito")
+
+
+DimPlot(merged, group.by = "Phase", reduction = 'rpca.umap')
+
+FeaturePlot(seu_cd8, reduction = "umap", features = "Itgae", split.by = 'group')
+FeaturePlot(seu_cd8, reduction = "umap", features = "Cd69")
+```
+```{r}
+merged <- JoinLayers(merged)
+
+m <- FindMarkers(merged, group.by = 'study', ident.1 = 'lcmv')
+```
+
+```{r}
+library(Polychrome)
+
+
+# build-in color palette
+Glasbey = glasbey.colors(15)
+
+
+VlnPlot(merged, group.by = "study", split.by = "orig.ident", features = "Cd69", col = Glasbey) 
+VlnPlot(merged, group.by = "study", split.by = "orig.ident", features = "Ccr7", , col = Glasbey) 
+VlnPlot(merged, group.by = "study", split.by = "orig.ident", features = "Itgae" , col = Glasbey)
+VlnPlot(merged, group.by = "study", split.by = "orig.ident", features = "Sell" , col = Glasbey)
+
+```
+
+
+
+```{r}
+#saveRDS(merged, "../output/integrated_lcmv.rds")
+```
+
+```{r}
+seu_axel <- readRDS("~/projects/Axel_Kallies/SC_Tumour_LN/Lei/output/filtered_unknown_and_id3.rds")
+seu_cd8 <- readRDS('../output/cd8.rds')
+
+DimPlot(seu_axel, group.by = 'cluster_manu2')
+
+
+seu_cd8 <- subset(seu_cd8, subset = seurat_clusters %in% c(0,1,2,4,5,6))
+seu_axel <- subset(seu_axel, subset = cluster_manu2 %in% c("5 Tumor Resident","6 Tumor TPEX","7 Tumor Effector I","8 Tumor Effector II","9 Tumor Effector III","10 Tumor Effector IV"))
+seu_cd8@meta.data$study <- "tumour"
+seu_axel@meta.data$study <- "axel"
+
+DimPlot(seu_axel, group.by = 'cluster_manu2')
+```
+```{r}
+merged2 <- merge(seu_cd8, seu_axel)
+
+merged2 <- NormalizeData(merged2)
+merged2 <- FindVariableFeatures(merged2)
+merged2 <- ScaleData(merged2)
+
+merged2 <- RunPCA(merged2)
+merged2 <- RunUMAP(merged2, dims = 1:20)
+
+DimPlot(merged2)
+```
+```{r}
+merged2 <- IntegrateLayers(
+  object = merged2, method = RPCAIntegration,
+  orig.reduction = "pca", new.reduction = "integrated.rpca",
+  verbose = FALSE
+)
+
+merged2 <- RunUMAP(merged2, reduction = "integrated.rpca", dims = 1:20, reduction.name = 'rpca.umap')
+```
+
+```{r}
+DimPlot(merged2, reduction =  'rpca.umap', group.by = 'cluster_manu2', label = T) 
+DimPlot(merged2, reduction =  'rpca.umap', group.by = 'study', label = T) 
+
+DimPlot(merged2, reduction =  'rpca.umap', split.by = 'study', group.by = 'orig.ident') 
+DimPlot(merged2, reduction =  'rpca.umap', split.by = 'study', group.by = 'cluster_manu2')
+```
+```{r}
+FeaturePlot(merged2, features = 'Irf7', reduction = 'rpca.umap', split.by = 'study')
+FeaturePlot(merged2, features = 'Itgae', reduction = 'rpca.umap', split.by = 'study')
+FeaturePlot(merged2, features = 'Ccr7', reduction = 'rpca.umap', split.by = 'study')
+FeaturePlot(merged2, features = 'Cd69', reduction = 'rpca.umap', split.by = 'study')
+FeaturePlot(merged2, features = 'Tox', reduction = 'rpca.umap', split.by = 'study')
+FeaturePlot(merged2, features = 'Gzmb', reduction = 'rpca.umap', split.by = 'study')
+FeaturePlot(merged2, features = 'Pdcd1', reduction = 'rpca.umap', split.by = 'study')
+FeaturePlot(merged2, features = 'Sell', reduction = 'rpca.umap', split.by = 'study')
+FeaturePlot(merged2, features = 'Eomes', reduction = 'rpca.umap', split.by = 'study')
+FeaturePlot(merged2, features = 'Tcf7', reduction = 'rpca.umap', split.by = 'study')
+FeaturePlot(merged2, features = 'Cxcr3', reduction = 'rpca.umap', split.by = 'study')
+FeaturePlot(merged2, features = 'Gzmk', reduction = 'rpca.umap', split.by = 'study')
+FeaturePlot(merged2, features = 'Lag3', reduction = 'rpca.umap', split.by = 'study')
+FeaturePlot(merged2, features = 'Klrd1', reduction = 'rpca.umap', split.by = 'study')
+```
+

@@ -1,0 +1,156 @@
+---
+title: "02_preprocessing"
+author: "Lachlan Dryburgh"
+date: "2024-05-08"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+library(Seurat)
+library(scRepertoire)
+
+seu <- readRDS('../output/filtered_continuous.rds')
+seu2 <- readRDS("../output/filtered_single.rds")
+
+seu <- merge(seu, seu2)
+
+seu$experiment <- paste0(substr(seu$orig.ident, 1,1), substr(seu$orig.ident, 5,5), substr(seu$orig.ident, 2,2))
+```
+
+```{r}
+sub <- subset(seu, subset = experiment != 'cs7')
+
+VlnPlot(sub, features = 'percent_mito', group.by = 'experiment', split.by = 'HTO2_classification')
+VlnPlot(sub, features = 'nCount_RNA', group.by = 'experiment', split.by = 'HTO2_classification')
+VlnPlot(sub, features = 'nFeature_RNA', group.by = 'experiment', split.by = 'HTO2_classification')
+VlnPlot(sub, features = 'percent_ribo', group.by = 'experiment', split.by = 'HTO2_classification')
+
+```
+
+
+
+```{r}
+seu <- NormalizeData(seu)
+seu <- FindVariableFeatures(seu)
+seu <- ScaleData(seu)
+
+seu <- RunPCA(seu)
+seu <- RunUMAP(seu, dims = 1:30)
+```
+
+```{r}
+DimPlot(seu)
+
+DimPlot(seu, group.by = 'orig.ident')
+
+seu@meta.data$treatment <- substring(seu@meta.data$orig.ident, 1, 1)
+
+seu@meta.data$group <-  paste(substring(seu@meta.data$orig.ident, 1, 1), substring(seu@meta.data$orig.ident, 5), sep = '_')
+
+DimPlot(seu, group.by = 'group')
+```
+
+```{r}
+seu <- FindNeighbors(seu)
+seu <- FindClusters(seu, resolution =  0.5)
+
+seu$orig.ident <- factor(seu$orig.ident, levels = c("c11_continuous", "c41_continuous", "c71_continuous", "t11_continuous", "t41_continuous", "t71_continuous", "c11_single", "c41_single", "c71_single", "t11_single", "t41_single", "t71_single"))
+
+DimPlot(seu, split.by = "treatment", label = T)
+DimPlot(seu, split.by = "orig.ident", ncol = 3)
+DimPlot(seu, split.by = "group", ncol = 2)
+```
+```{r}
+seu <- JoinLayers(seu)
+
+markers <- FindAllMarkers(seu)
+```
+
+```{r}
+m0 <- markers[markers$cluster == 5,]
+m0[order(m0$avg_log2FC, decreasing = T),]
+```
+```{r}
+#FeaturePlot(seu, feature = 'Ptprc', reduction = "rpca.umap")
+#FeaturePlot(seu, feature = 'Cd8a', reduction = "rpca.umap")
+#FeaturePlot(seu, feature = 'Cd4', reduction = "rpca.umap")
+#FeaturePlot(seu, feature = 'Trgv2', reduction = "rpca.umap")
+
+
+#FeaturePlot(seu, feature = 'nFeature_RNA', reduction = "rpca.umap")
+#FeaturePlot(seu, feature = 'nCount_RNA', reduction = "rpca.umap")
+```
+
+Sell, Id3, Myb, TCf7, CxCr3, Tox, Pdcd1
+```{r}
+FeaturePlot(seu, feature = 'Ptprc', reduction = "umap")
+FeaturePlot(seu, feature = 'Cd8a', reduction = "umap")
+FeaturePlot(seu, feature = 'Cd4', reduction = "umap")
+FeaturePlot(seu, feature = 'Trgv2', reduction = "umap")
+FeaturePlot(seu, feature = 'Sell', reduction = "umap")
+FeaturePlot(seu, feature = 'Id3', reduction = "umap")
+FeaturePlot(seu, feature = 'Ncam1', reduction = "umap")
+FeaturePlot(seu, feature = 'Cd14', reduction = "umap")
+FeaturePlot(seu, feature = 'Irf7', reduction = "umap")
+FeaturePlot(seu, feature = 'Il17a', reduction = "umap")
+FeaturePlot(seu, feature = 'Blk', reduction = "umap")
+FeaturePlot(seu, feature = 'Trdv4', reduction = "umap")
+FeaturePlot(seu, feature = 'Trdv1', reduction = "umap")
+
+FeaturePlot(seu, feature = 'Tyrobp', reduction = "umap")
+FeaturePlot(seu, feature = 'Fcer1g', reduction = "umap")
+FeaturePlot(seu, feature = 'Igfbp4', reduction = "umap")
+FeaturePlot(seu, feature = 'Myb', reduction = "umap")
+FeaturePlot(seu, feature = 'Tcf7', reduction = "umap")
+FeaturePlot(seu, feature = 'Cxcr3', reduction = "umap")
+FeaturePlot(seu, feature = 'Tox', reduction = "umap")
+FeaturePlot(seu, feature = 'Pdcd1', reduction = "umap")
+FeaturePlot(seu, feature = 'Cd3d', reduction = "umap")
+FeaturePlot(seu, feature = 'Ccr7', reduction = "umap")
+FeaturePlot(seu, feature = 'Itgae', reduction = "umap")
+
+```
+
+```{r}
+
+table(seu$cloneType, seu$treatment)
+DimPlot(seu, group.by =  "cloneType")
+
+DimPlot(seu, group.by =  "cloneType", split.by = "orig.ident", ncol = 3)
+
+multi <- subset(seu, subset = Frequency > 5)
+multi <- colnames(multi)
+
+DimPlot(seu,cells.highlight = multi)
+```
+
+```{r}
+library(openxlsx)
+
+wb = createWorkbook()
+for(i in levels(seu$seurat_clusters)) {
+  
+  addWorksheet(wb, i)
+  writeData(wb, i, x = markers[markers$cluster == i,])
+}
+
+
+saveWorkbook(wb, '../output/markers.xlsx', overwrite = T)
+```
+
+```{r}
+seu@meta.data$Frequency[is.na(seu@meta.data$Frequency)] <- 0
+seu@meta.data$cloneType[is.na(seu@meta.data$cloneType)] <- "None (0)"
+
+saveRDS(seu, '../output/clustered.rds')
+```
+
+```{r}
+library(ShinyCell)
+
+scConf = createConfig(seu)
+makeShinyApp(seu, scConf, gene.mapping = TRUE,
+             shiny.title = "Trilaciclib Continuous vs Single Dose",
+             shiny.dir = "../shinyApp/") 
+
+```

@@ -1,0 +1,260 @@
+---
+title: "03_cd8_analysis"
+author: "Lachlan Dryburgh"
+date: "2024-05-15"
+output: html_document
+---
+
+```{r}
+library(Seurat)
+library(scRepertoire)
+
+seu <- readRDS('../output/clustered.rds')
+
+library(gprofiler2)
+
+# Cell cycle 
+mmus_m = gorth(cc.genes.updated.2019$s.genes, source_organism = "hsapiens", target_organism = "mmusculus")$ortholog_name
+mmus_g2m = gorth(cc.genes.updated.2019$g2m.genes, source_organism = "hsapiens", target_organism = "mmusculus")$ortholog_name
+seu <- CellCycleScoring(seu, s.features = mmus_m, g2m.features = mmus_g2m, set.ident = T)
+
+
+seu[["RNA"]] <- split(seu[["RNA"]], f = seu$orig.ident)
+
+DimPlot(seu, group.by = 'Phase')
+
+
+```
+
+```{r}
+#seu <- subset(seu, subset = orig.ident != "c71_single")
+
+#DimPlot(seu)
+
+#options(future.globals.maxSize = 8000 * 1024^2)
+
+#seu <- IntegrateLayers(
+#  object = seu, method = RPCAIntegration,
+#  orig.reduction = "pca", new.reduction = "integrated.rpca",
+#  verbose = FALSE
+#)
+
+#seu <- RunUMAP(seu, reduction = "integrated.rpca", dims = 1:30, reduction.name = 'rpca.umap')
+
+#DimPlot(seu, reduction = "rpca.umap")
+
+#FeaturePlot(seu, features = 'Cd8a', reduction = "rpca.umap")
+
+VlnPlot(seu, features = "Cd8a", group.by = "seurat_clusters")
+```
+```{r}
+#seu <- FindNeighbors(seu, reduction = 'integrated.rpca')
+#seu <- FindClusters(seu, resolution =  0.9)
+
+#DimPlot(seu, reduction = "rpca.umap", label = T)
+```
+
+```{r}
+seu@meta.data$old_clusters <- seu@meta.data$seurat_clusters
+seu <- FindClusters(seu, resolution =  1.5)
+
+DimPlot(seu, label = T)
+
+VlnPlot(seu, features = c("Cd8a", 'Cd4'))
+FeaturePlot(seu, features = "Cd8a")
+FeaturePlot(seu[,seu$seurat_clusters %in% c(5,8,11,15,16,19,21,22,23)], features = "Cd8a")
+```
+
+
+```{r}
+seu_cd8 <- subset(seu, seurat_clusters %in% c(5,8,11,15,16,19,21,22,23))
+seu_cd8 <- subset(seu_cd8, Cd8a > 0.5)
+
+
+
+FeaturePlot(seu_cd8, features = "Cd8a")
+FeaturePlot(seu_cd8, features = "Cd4")
+DimPlot(seu_cd8, group.by = "cloneType")
+FeaturePlot(seu_cd8, features = "nCount_RNA")
+FeaturePlot(seu_cd8, features = "nFeature_RNA")
+FeaturePlot(seu_cd8, features = "percent_mito")
+FeaturePlot(seu_cd8, features = "percent_ribo")
+
+#DimPlot(seu, label = T)
+```
+
+
+
+```{r}
+seu_cd8 <- NormalizeData(seu_cd8)
+seu_cd8 <- FindVariableFeatures(seu_cd8)
+seu_cd8 <- ScaleData(seu_cd8)
+
+VariableFeatures(seu_cd8)
+var_f <-  VariableFeatures(seu_cd8)
+#var_f <- var_f[-grep(var_f, pattern = "^mt")]
+
+
+seu_cd8 <- RunPCA(seu_cd8, features = var_f)
+seu_cd8 <- RunUMAP(seu_cd8, dims = 1:15)
+```
+```{r}
+DimPlot(seu_cd8)
+FeaturePlot(seu_cd8, features = "percent_mito")
+
+
+
+```
+```{r}
+seu_cd8 <- FindNeighbors(seu_cd8)
+seu_cd8 <- FindClusters(seu_cd8, resolution =  0.3)
+
+DimPlot(seu_cd8)
+DimPlot(seu_cd8, split.by ='orig.ident', ncol = 3)
+
+```
+```{r}
+FeaturePlot(seu_cd8, feature = 'Ptprc', reduction = "umap", split.by = "group") + patchwork::plot_layout(ncol = 2, nrow = 2)
+FeaturePlot(seu_cd8, feature = 'Cd8a', reduction = "umap", split.by = "group") + patchwork::plot_layout(ncol = 2, nrow = 2)
+FeaturePlot(seu_cd8, feature = 'Cd4', reduction = "umap", split.by = "group") + patchwork::plot_layout(ncol = 2, nrow = 2)
+FeaturePlot(seu_cd8, feature = 'Trgv2', reduction = "umap", split.by = "group") + patchwork::plot_layout(ncol = 2, nrow = 2)
+FeaturePlot(seu_cd8, feature = 'Sell', reduction = "umap", split.by = "group") + patchwork::plot_layout(ncol = 2, nrow = 2) 
+FeaturePlot(seu_cd8, feature = 'Id3', reduction = "umap", split.by = "group") + patchwork::plot_layout(ncol = 2, nrow = 2)
+
+FeaturePlot(seu_cd8, feature = 'Irf7', reduction = "umap", split.by = "group") + patchwork::plot_layout(ncol = 2, nrow = 2)
+FeaturePlot(seu_cd8, feature = 'Il17a', reduction = "umap", split.by = "group") + patchwork::plot_layout(ncol = 2, nrow = 2)
+FeaturePlot(seu_cd8, feature = 'Blk', reduction = "umap", split.by = "group") + patchwork::plot_layout(ncol = 2, nrow = 2)
+FeaturePlot(seu_cd8, feature = 'Trdv4', reduction = "umap", split.by = "group") + patchwork::plot_layout(ncol = 2, nrow = 2)
+FeaturePlot(seu_cd8, feature = 'Trdv1', reduction = "umap", split.by = "group") + patchwork::plot_layout(ncol = 2, nrow = 2)
+
+FeaturePlot(seu_cd8, feature = 'Tyrobp', reduction = "umap", split.by = "group") + patchwork::plot_layout(ncol = 2, nrow = 2)
+FeaturePlot(seu_cd8, feature = 'Fcer1g', reduction = "umap", split.by = "group") + patchwork::plot_layout(ncol = 2, nrow = 2)
+FeaturePlot(seu_cd8, feature = 'Igfbp4', reduction = "umap", split.by = "group") + patchwork::plot_layout(ncol = 2, nrow = 2)
+FeaturePlot(seu_cd8, feature = 'Myb', reduction = "umap", split.by = "group") + patchwork::plot_layout(ncol = 2, nrow = 2)
+FeaturePlot(seu_cd8, feature = 'Tcf7', reduction = "umap", split.by = "group") + patchwork::plot_layout(ncol = 2, nrow = 2)
+FeaturePlot(seu_cd8, feature = 'Cxcr3', reduction = "umap", split.by = "group") + patchwork::plot_layout(ncol = 2, nrow = 2)
+FeaturePlot(seu_cd8, feature = 'Tox', reduction = "umap", split.by = "group") + patchwork::plot_layout(ncol = 2, nrow = 2)
+FeaturePlot(seu_cd8, feature = 'Pdcd1', reduction = "umap", split.by = "group") + patchwork::plot_layout(ncol = 2, nrow = 2)
+
+
+FeaturePlot(seu_cd8, feature = 'nCount_RNA', reduction = "umap") 
+FeaturePlot(seu_cd8, feature = 'nFeature_RNA', reduction = "umap") 
+
+```
+```{r}
+seu_cd8 <- JoinLayers(seu_cd8)
+
+m <- FindAllMarkers(seu_cd8)
+
+m[m$cluster == 4,]
+View(m[m$cluster == 4,])
+```
+
+```{r}
+rib <- rownames(seu[['RNA']])[grep(rownames(seu[['RNA']]), pattern = "^Rp[ls]")]
+
+seu <- JoinLayers(seu)
+seu <- AddModuleScore(seu, features = list(rib), name = "rib")
+
+VlnPlot(seu, features = "rib1", group.by = "orig.ident")
+```
+
+```{r}
+FeaturePlot(seu_cd8, feature = 'Dusp2', reduction = "umap", split.by = "group") + patchwork::plot_layout(ncol = 2, nrow = 2)
+FeaturePlot(seu_cd8, feature = 'Ccr7', reduction = "umap", split.by = "group") + patchwork::plot_layout(ncol = 2, nrow = 2)
+FeaturePlot(seu_cd8, feature = 'Igfbp4', reduction = "umap", split.by = "group") + patchwork::plot_layout(ncol = 2, nrow = 2)
+
+DimPlot(seu_cd8, group.by = 'Phase')
+DimPlot(seu_cd8, group.by = 'cloneType', order = c('Small (1 < X <= 5)','Medium (5 < X <= 20)','Large (20 < X <= 100)')) + scale_color_manual(values = c( 'blue',  'orange',  'red', 'azure2', 'azure3'), breaks = c('Small (1 < X <= 5)','Medium (5 < X <= 20)','Large (20 < X <= 100)' ,'Single (0 < X <= 1)', 'None (0)'), )
+
+DimPlot(seu_cd8, group.by = 'cloneType', order = c('Small (1 < X <= 5)','Medium (5 < X <= 20)','Large (20 < X <= 100)'), split.by = 'orig.ident' , ncol = 3) + scale_color_manual(values = c( 'blue',  'orange',  'red', 'azure2', 'azure3'), breaks = c('Small (1 < X <= 5)','Medium (5 < X <= 20)','Large (20 < X <= 100)' ,'Single (0 < X <= 1)', 'None (0)'), )
+```
+```{r}
+m <- FindMarkers(seu_cd8, group.by = 'group', ident.1 = 't_continuous')
+
+FeaturePlot(seu_cd8, features = 'Klf2')
+FeaturePlot(seu_cd8, features = 'Gm42418')
+
+```
+
+
+```{r}
+library(ShinyCell)
+
+scConf = createConfig(seu_cd8)
+makeShinyApp(seu_cd8, scConf, gene.mapping = TRUE,
+             shiny.title = "Trilaciclib Cd8+ Continuous vs Single Dose") 
+
+```
+```{r}
+library(dplyr)
+library(SingleR)
+library(celldex)
+
+seu_cd8 <- JoinLayers(seu_cd8)
+sce <- as.SingleCellExperiment(seu_cd8)
+
+ref <- ImmGenData()
+annot <- SingleR(test = sce, ref = ref, labels = ref$label.fine)
+
+
+seu_cd8@meta.data$annot <- annot$labels
+
+table(annot$labels)
+
+annot$merged_labels <- annot$labels
+
+annot$merged_labels[grepl("Tgd", annot$merged_labels, fixed = T) ] <- "Tgd"
+annot$merged_labels[grepl("T.4N", annot$merged_labels, fixed = T) ] <- "CD4"
+annot$merged_labels[grepl("T.8N", annot$merged_labels, fixed = T) ] <- "CD8 Naive"
+annot$merged_labels[grepl("T.4EF", annot$merged_labels, fixed = T) ] <- "CD4"
+annot$merged_labels[grepl("T.4M", annot$merged_labels, fixed = T) ] <- "CD4"
+annot$merged_labels[grepl("T.8EFF", annot$merged_labels, fixed = T) ] <- "CD8 Eff"
+annot$merged_labels[grepl("T.8M", annot$merged_labels, fixed = T) ] <- "CD8 Mem"
+annot$merged_labels[grepl("T.Tregs", annot$merged_labels, fixed = T) ] <- "Tregs"
+annot$merged_labels[grepl("DC", annot$merged_labels, fixed = T) ] <- "Other"
+annot$merged_labels[grepl("B" , annot$merged_labels, fixed = T) ] <- "Other"
+annot$merged_labels[grepl("MF", annot$merged_labels, fixed = T) ] <- "Other"
+annot$merged_labels[grepl("MO.", annot$merged_labels, fixed = T) ] <- "Other"
+annot$merged_labels[grepl("T.CD8", annot$merged_labels, fixed = T) ] <- "CD8 other"
+annot$merged_labels[grepl("T.8SP", annot$merged_labels, fixed = T) ] <- "CD8 other"
+annot$merged_labels[grepl("T.CD4", annot$merged_labels, fixed = T) ] <- "CD4"
+annot$merged_labels[grepl("T.4", annot$merged_labels, fixed = T) ] <- "CD4"
+annot$merged_labels[grepl("ILC", annot$merged_labels, fixed = T) ] <- "Other"
+annot$merged_labels[grepl("NK", annot$merged_labels, fixed = T) ] <- "Other"
+annot$merged_labels[grepl("Stem", annot$merged_labels, fixed = T) ] <- "Other"
+
+table(annot$merged_labels)
+
+seu_cd8@meta.data$annot_merged <- annot$merged_labels
+
+table(seu_cd8@meta.data$seurat_clusters, seu_cd8@meta.data$annot_merged)
+table(seu_cd8@meta.data$orig.ident, seu_cd8@meta.data$annot_merged)
+
+
+DimPlot(seu_cd8, group.by = 'annot_merged')
+
+plot(table(seu_cd8@meta.data$orig.ident, seu_cd8@meta.data$annot_merged))
+```
+
+```{r}
+var <- VariableFeatures(seu_cd8)
+
+var <- var[!grepl('^mt', var)]
+#var <- var[!grepl('^Rp[sl]', var)]
+
+seu_cd8 <- RunPCA(seu_cd8, features = var, reduction.name = 'pca_mt')
+seu_cd8 <- RunUMAP(seu_cd8, reduction ='pca_mt', reduction.name = 'umap_mt', dims =1:20)
+
+#seu_cd8 <- FindNeighbors(seu_cd8, reduction = 'pca_mt')
+#seu_cd8 <- FindClusters(seu_cd8, resolution = 0.3)
+
+DimPlot(seu_cd8, reduction = 'umap_mt')
+FeaturePlot(seu_cd8, reduction = 'umap_mt', features = 'percent_mito')
+```
+
+```{r}
+saveRDS(seu_cd8, '../output/cd8.rds')
+
+```
+

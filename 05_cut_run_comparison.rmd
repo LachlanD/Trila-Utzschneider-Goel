@@ -1,0 +1,384 @@
+---
+title: "Comparison"
+author: "Lachlan Dryburgh"
+date: "2024-06-19"
+output: html_document
+---
+
+```{r}
+all_tpex <- read.table('~/projects/Axel_Kallies/ChIP_ATAC/macs/Doc21p/Doc21p_peaks.narrowPeak')
+all_tex <- read.table('~/projects/Axel_Kallies/ChIP_ATAC/macs/Doc21n/Doc21n_peaks.narrowPeak')
+
+```
+
+
+```{r}
+co <- 250
+
+all_dmso_6 <- read.table(paste0('../../data/Cut_run/co', co,'/4-D3-6hrs-DMSO-Rb-4C_S27_mm10_nodm6.narrowPeak'), skip= 1)
+all_dmso_16 <- read.table(paste0('../../data/Cut_run/co', co, '/10-D3-16hrs-DMSO-Rb-4C_S1_mm10_nodm6.narrowPeak'), skip= 1)
+all_tri_6 <- read.table(paste0('../../data/Cut_run/co', co, '/5-D3-6hrs-Trilaciclib-Rb-4C_S28_mm10_nodm6.narrowPeak'), skip= 1)
+all_tri_16 <- read.table(paste0('../../data/Cut_run/co', co, '/11-D3-16hrs-Trilaciclib-Rb-4C_S2_mm10_nodm6.narrowPeak'), skip= 1)
+
+DMSO_6_p <- read.table(paste0('../../data/Cut_run/co', co, '/4_6hrs_DMSO_Doc21p_annotated.bed'))
+DMSO_16_p <- read.table(paste0('../../data/Cut_run/co', co, '/10_16hrs_DMSO_Doc21p_annotated.bed'))
+Tri_6_p <- read.table(paste0('../../data/Cut_run/co', co, '/5_6hrs_Tri_Doc21p_annotated.bed'))
+Tri_16_p <- read.table(paste0('../../data/Cut_run/co', co, '/11_16hrs_Tri_Doc21p_annotated.bed'))
+
+DMSO_6_n <- read.table(paste0('../../data/Cut_run/co', co, '/4_6hrs_DMSO_Doc21n_annotated.bed'))
+DMSO_16_n <- read.table(paste0('../../data/Cut_run/co', co, '/10_16hrs_DMSO_Doc21n_annotated.bed'))
+Tri_6_n <- read.table(paste0('../../data/Cut_run/co', co, '/5_6hrs_Tri_Doc21n_annotated.bed'))
+Tri_16_n <- read.table(paste0('../../data/Cut_run/co', co, '/11_16hrs_Tri_Doc21n_annotated.bed'))
+
+df1p <- data.frame(npeaks = nrow(all_dmso_6),nintersect = length(unique(DMSO_6_p$V4)), percent = length(unique(DMSO_6_p$V4))/nrow(all_dmso_6),  sample = 'dmso_6', cutoff = co)
+df2p <- data.frame(npeaks = nrow(all_tri_16),nintersect = length(unique(Tri_16_p$V4)), percent = length(unique(Tri_16_p$V4))/nrow(all_tri_16),  sample = 'tri_16', cutoff = co)
+df3p<- data.frame(npeaks = nrow(all_dmso_16),nintersect = length(unique(DMSO_16_p$V4)), percent = length(unique(DMSO_16_p$V4))/nrow(all_dmso_16),  sample = 'dmso_16', cutoff = co)
+df4p <- data.frame(npeaks = nrow(all_tri_6), nintersect = length(unique(Tri_6_p$V4)), percent = length(unique(Tri_6_p$V4))/nrow(all_tri_6),  sample = 'tri_6', cutoff = co)
+
+df1n <- data.frame(npeaks = nrow(all_dmso_6),nintersect = length(unique(DMSO_6_n$V4)), percent = length(unique(DMSO_6_n$V4))/nrow(all_dmso_6),  sample = 'dmso_6', cutoff = co)
+df2n <- data.frame(npeaks = nrow(all_tri_16),nintersect = length(unique(Tri_16_n$V4)), percent = length(unique(Tri_16_n$V4))/nrow(all_tri_16),  sample = 'tri_16', cutoff = co)
+df3n <- data.frame(npeaks = nrow(all_dmso_16),nintersect = length(unique(DMSO_16_n$V4)), percent = length(unique(DMSO_16_n$V4))/nrow(all_dmso_16),  sample = 'dmso_16', cutoff = co)
+df4n <- data.frame(npeaks = nrow(all_tri_6), nintersect = length(unique(Tri_6_n$V4)), percent = length(unique(Tri_6_n$V4))/nrow(all_tri_6),  sample = 'tri_6', cutoff = co)
+
+df250p <- rbind(df1p,df2p,df3p,df4p)
+df250n <- rbind(df1n,df2n,df3n,df4n)
+
+length(unique(DMSO_6_p$V4))/nrow(all_tpex)
+length(unique(DMSO_16_p$V4))/nrow(all_tpex)
+length(unique(Tri_6_p$V4))/nrow(all_tpex)
+length(unique(Tri_16_p$V4))/nrow(all_tpex)
+
+
+tri_both <- unique(Tri_6_p$V14[Tri_6_p$V14 %in% Tri_16_p$V14]) 
+dmso_both <- unique(DMSO_6_p$V14[DMSO_6_p$V14 %in% DMSO_16_p$V14])
+
+tri_only <- tri_both[!(tri_both %in% dmso_both)]
+dmso_only <- tri_both[!(dmso_both %in% tri_both)]
+
+
+all <- tri_both[tri_both %in% dmso_both]
+```
+
+
+
+```{r}
+co <- 350
+all_dmso_6 <- read.table(paste0('../../data/Cut_run/co', co,'/4-D3-6hrs-DMSO-Rb-4C_S27_mm10_nodm6.narrowPeak'), skip= 1)
+all_dmso_16 <- read.table(paste0('../../data/Cut_run/co', co, '/10-D3-16hrs-DMSO-Rb-4C_S1_mm10_nodm6.narrowPeak'), skip= 1)
+all_tri_6 <- read.table(paste0('../../data/Cut_run/co', co, '/5-D3-6hrs-Trilaciclib-Rb-4C_S28_mm10_nodm6.narrowPeak'), skip= 1)
+all_tri_16 <- read.table(paste0('../../data/Cut_run/co', co, '/11-D3-16hrs-Trilaciclib-Rb-4C_S2_mm10_nodm6.narrowPeak'), skip= 1)
+
+DMSO_6_p <- read.table(paste0('../../data/Cut_run/co', co, '/4_6hrs_DMSO_Doc21p_annotated.bed'))
+DMSO_16_p <- read.table(paste0('../../data/Cut_run/co', co, '/10_16hrs_DMSO_Doc21p_annotated.bed'))
+Tri_6_p <- read.table(paste0('../../data/Cut_run/co', co, '/5_6hrs_Tri_Doc21p_annotated.bed'))
+Tri_16_p <- read.table(paste0('../../data/Cut_run/co', co, '/11_16hrs_Tri_Doc21p_annotated.bed'))
+
+DMSO_6_n <- read.table(paste0('../../data/Cut_run/co', co, '/4_6hrs_DMSO_Doc21n_annotated.bed'))
+DMSO_16_n <- read.table(paste0('../../data/Cut_run/co', co, '/10_16hrs_DMSO_Doc21n_annotated.bed'))
+Tri_6_n <- read.table(paste0('../../data/Cut_run/co', co, '/5_6hrs_Tri_Doc21n_annotated.bed'))
+Tri_16_n <- read.table(paste0('../../data/Cut_run/co', co, '/11_16hrs_Tri_Doc21n_annotated.bed'))
+
+df1p <- data.frame(npeaks = nrow(all_dmso_6),nintersect = length(unique(DMSO_6_p$V4)), percent = length(unique(DMSO_6_p$V4))/nrow(all_dmso_6),  sample = 'dmso_6', cutoff = co)
+df2p <- data.frame(npeaks = nrow(all_tri_16),nintersect = length(unique(Tri_16_p$V4)), percent = length(unique(Tri_16_p$V4))/nrow(all_tri_16),  sample = 'tri_16', cutoff = co)
+df3p<- data.frame(npeaks = nrow(all_dmso_16),nintersect = length(unique(DMSO_16_p$V4)), percent = length(unique(DMSO_16_p$V4))/nrow(all_dmso_16),  sample = 'dmso_16', cutoff = co)
+df4p <- data.frame(npeaks = nrow(all_tri_6), nintersect = length(unique(Tri_6_p$V4)), percent = length(unique(Tri_6_p$V4))/nrow(all_tri_6),  sample = 'tri_6', cutoff = co)
+
+df1n <- data.frame(npeaks = nrow(all_dmso_6),nintersect = length(unique(DMSO_6_n$V4)), percent = length(unique(DMSO_6_n$V4))/nrow(all_dmso_6),  sample = 'dmso_6', cutoff = co)
+df2n <- data.frame(npeaks = nrow(all_tri_16),nintersect = length(unique(Tri_16_n$V4)), percent = length(unique(Tri_16_n$V4))/nrow(all_tri_16),  sample = 'tri_16', cutoff = co)
+df3n <- data.frame(npeaks = nrow(all_dmso_16),nintersect = length(unique(DMSO_16_n$V4)), percent = length(unique(DMSO_16_n$V4))/nrow(all_dmso_16),  sample = 'dmso_16', cutoff = co)
+df4n <- data.frame(npeaks = nrow(all_tri_6), nintersect = length(unique(Tri_6_n$V4)), percent = length(unique(Tri_6_n$V4))/nrow(all_tri_6),  sample = 'tri_6', cutoff = co)
+
+df350p <- rbind(df1p,df2p,df3p,df4p)
+df350n <- rbind(df1n,df2n,df3n,df4n)
+
+length(unique(DMSO_6_p$V4))/nrow(all_tpex)
+length(unique(DMSO_16_p$V4))/nrow(all_tpex)
+length(unique(Tri_6_p$V4))/nrow(all_tpex)
+length(unique(Tri_16_p$V4))/nrow(all_tpex)
+
+
+tri_both <- unique(Tri_6_p$V14[Tri_6_p$V14 %in% Tri_16_p$V14]) 
+dmso_both <- unique(DMSO_6_p$V14[DMSO_6_p$V14 %in% DMSO_16_p$V14])
+
+tri_only <- tri_both[!(tri_both %in% dmso_both)]
+dmso_only <- tri_both[!(dmso_both %in% tri_both)]
+
+
+all <- tri_both[tri_both %in% dmso_both]
+```
+
+
+
+
+```{r}
+co <- 400
+
+all_dmso_6 <- read.table(paste0('../../data/Cut_run/co', co,'/4-D3-6hrs-DMSO-Rb-4C_S27_mm10_nodm6.narrowPeak'), skip= 1)
+all_dmso_16 <- read.table(paste0('../../data/Cut_run/co', co, '/10-D3-16hrs-DMSO-Rb-4C_S1_mm10_nodm6.narrowPeak'), skip= 1)
+all_tri_6 <- read.table(paste0('../../data/Cut_run/co', co, '/5-D3-6hrs-Trilaciclib-Rb-4C_S28_mm10_nodm6.narrowPeak'), skip= 1)
+all_tri_16 <- read.table(paste0('../../data/Cut_run/co', co, '/11-D3-16hrs-Trilaciclib-Rb-4C_S2_mm10_nodm6.narrowPeak'), skip= 1)
+
+DMSO_6_p <- read.table(paste0('../../data/Cut_run/co', co, '/4_6hrs_DMSO_Doc21p_annotated.bed'))
+DMSO_16_p <- read.table(paste0('../../data/Cut_run/co', co, '/10_16hrs_DMSO_Doc21p_annotated.bed'))
+Tri_6_p <- read.table(paste0('../../data/Cut_run/co', co, '/5_6hrs_Tri_Doc21p_annotated.bed'))
+Tri_16_p <- read.table(paste0('../../data/Cut_run/co', co, '/11_16hrs_Tri_Doc21p_annotated.bed'))
+
+DMSO_6_n <- read.table(paste0('../../data/Cut_run/co', co, '/4_6hrs_DMSO_Doc21n_annotated.bed'))
+DMSO_16_n <- read.table(paste0('../../data/Cut_run/co', co, '/10_16hrs_DMSO_Doc21n_annotated.bed'))
+Tri_6_n <- read.table(paste0('../../data/Cut_run/co', co, '/5_6hrs_Tri_Doc21n_annotated.bed'))
+Tri_16_n <- read.table(paste0('../../data/Cut_run/co', co, '/11_16hrs_Tri_Doc21n_annotated.bed'))
+
+df1p <- data.frame(npeaks = nrow(all_dmso_6),nintersect = length(unique(DMSO_6_p$V4)), percent = length(unique(DMSO_6_p$V4))/nrow(all_dmso_6),  sample = 'dmso_6', cutoff = co)
+df2p <- data.frame(npeaks = nrow(all_tri_16),nintersect = length(unique(Tri_16_p$V4)), percent = length(unique(Tri_16_p$V4))/nrow(all_tri_16),  sample = 'tri_16', cutoff = co)
+df3p<- data.frame(npeaks = nrow(all_dmso_16),nintersect = length(unique(DMSO_16_p$V4)), percent = length(unique(DMSO_16_p$V4))/nrow(all_dmso_16),  sample = 'dmso_16', cutoff = co)
+df4p <- data.frame(npeaks = nrow(all_tri_6), nintersect = length(unique(Tri_6_p$V4)), percent = length(unique(Tri_6_p$V4))/nrow(all_tri_6),  sample = 'tri_6', cutoff = co)
+
+df1n <- data.frame(npeaks = nrow(all_dmso_6),nintersect = length(unique(DMSO_6_n$V4)), percent = length(unique(DMSO_6_n$V4))/nrow(all_dmso_6),  sample = 'dmso_6', cutoff = co)
+df2n <- data.frame(npeaks = nrow(all_tri_16),nintersect = length(unique(Tri_16_n$V4)), percent = length(unique(Tri_16_n$V4))/nrow(all_tri_16),  sample = 'tri_16', cutoff = co)
+df3n <- data.frame(npeaks = nrow(all_dmso_16),nintersect = length(unique(DMSO_16_n$V4)), percent = length(unique(DMSO_16_n$V4))/nrow(all_dmso_16),  sample = 'dmso_16', cutoff = co)
+df4n <- data.frame(npeaks = nrow(all_tri_6), nintersect = length(unique(Tri_6_n$V4)), percent = length(unique(Tri_6_n$V4))/nrow(all_tri_6),  sample = 'tri_6', cutoff = co)
+
+df400p <- rbind(df1p,df2p,df3p,df4p)
+df400n <- rbind(df1n,df2n,df3n,df4n)
+
+length(unique(DMSO_6_p$V4))/nrow(all_tpex)
+length(unique(DMSO_16_p$V4))/nrow(all_tpex)
+length(unique(Tri_6_p$V4))/nrow(all_tpex)
+length(unique(Tri_16_p$V4))/nrow(all_tpex)
+
+
+tri_both <- unique(Tri_6_p$V14[Tri_6_p$V14 %in% Tri_16_p$V14]) 
+dmso_both <- unique(DMSO_6_p$V14[DMSO_6_p$V14 %in% DMSO_16_p$V14])
+
+tri_only <- tri_both[!(tri_both %in% dmso_both)]
+dmso_only <- tri_both[!(dmso_both %in% tri_both)]
+
+
+all <- tri_both[tri_both %in% dmso_both]
+```
+
+
+```{r}
+co <- 450
+
+all_dmso_6 <- read.table(paste0('../../data/Cut_run/co', co,'/4-D3-6hrs-DMSO-Rb-4C_S27_mm10_nodm6.narrowPeak'), skip= 1)
+all_dmso_16 <- read.table(paste0('../../data/Cut_run/co', co, '/10-D3-16hrs-DMSO-Rb-4C_S1_mm10_nodm6.narrowPeak'), skip= 1)
+all_tri_6 <- read.table(paste0('../../data/Cut_run/co', co, '/5-D3-6hrs-Trilaciclib-Rb-4C_S28_mm10_nodm6.narrowPeak'), skip= 1)
+all_tri_16 <- read.table(paste0('../../data/Cut_run/co', co, '/11-D3-16hrs-Trilaciclib-Rb-4C_S2_mm10_nodm6.narrowPeak'), skip= 1)
+
+DMSO_6_p <- read.table(paste0('../../data/Cut_run/co', co, '/4_6hrs_DMSO_Doc21p_annotated.bed'))
+DMSO_16_p <- read.table(paste0('../../data/Cut_run/co', co, '/10_16hrs_DMSO_Doc21p_annotated.bed'))
+Tri_6_p <- read.table(paste0('../../data/Cut_run/co', co, '/5_6hrs_Tri_Doc21p_annotated.bed'))
+Tri_16_p <- read.table(paste0('../../data/Cut_run/co', co, '/11_16hrs_Tri_Doc21p_annotated.bed'))
+
+DMSO_6_n <- read.table(paste0('../../data/Cut_run/co', co, '/4_6hrs_DMSO_Doc21n_annotated.bed'))
+DMSO_16_n <- read.table(paste0('../../data/Cut_run/co', co, '/10_16hrs_DMSO_Doc21n_annotated.bed'))
+Tri_6_n <- read.table(paste0('../../data/Cut_run/co', co, '/5_6hrs_Tri_Doc21n_annotated.bed'))
+Tri_16_n <- read.table(paste0('../../data/Cut_run/co', co, '/11_16hrs_Tri_Doc21n_annotated.bed'))
+
+df1p <- data.frame(npeaks = nrow(all_dmso_6),nintersect = length(unique(DMSO_6_p$V4)), percent = length(unique(DMSO_6_p$V4))/nrow(all_dmso_6),  sample = 'dmso_6', cutoff = co)
+df2p <- data.frame(npeaks = nrow(all_tri_16),nintersect = length(unique(Tri_16_p$V4)), percent = length(unique(Tri_16_p$V4))/nrow(all_tri_16),  sample = 'tri_16', cutoff = co)
+df3p<- data.frame(npeaks = nrow(all_dmso_16),nintersect = length(unique(DMSO_16_p$V4)), percent = length(unique(DMSO_16_p$V4))/nrow(all_dmso_16),  sample = 'dmso_16', cutoff = co)
+df4p <- data.frame(npeaks = nrow(all_tri_6), nintersect = length(unique(Tri_6_p$V4)), percent = length(unique(Tri_6_p$V4))/nrow(all_tri_6),  sample = 'tri_6', cutoff = co)
+
+df1n <- data.frame(npeaks = nrow(all_dmso_6),nintersect = length(unique(DMSO_6_n$V4)), percent = length(unique(DMSO_6_n$V4))/nrow(all_dmso_6),  sample = 'dmso_6', cutoff = co)
+df2n <- data.frame(npeaks = nrow(all_tri_16),nintersect = length(unique(Tri_16_n$V4)), percent = length(unique(Tri_16_n$V4))/nrow(all_tri_16),  sample = 'tri_16', cutoff = co)
+df3n <- data.frame(npeaks = nrow(all_dmso_16),nintersect = length(unique(DMSO_16_n$V4)), percent = length(unique(DMSO_16_n$V4))/nrow(all_dmso_16),  sample = 'dmso_16', cutoff = co)
+df4n <- data.frame(npeaks = nrow(all_tri_6), nintersect = length(unique(Tri_6_n$V4)), percent = length(unique(Tri_6_n$V4))/nrow(all_tri_6),  sample = 'tri_6', cutoff = co)
+
+df450p <- rbind(df1p,df2p,df3p,df4p)
+df450n <- rbind(df1n,df2n,df3n,df4n)
+
+length(unique(DMSO_6_p$V4))/nrow(all_tpex)
+length(unique(DMSO_16_p$V4))/nrow(all_tpex)
+length(unique(Tri_6_p$V4))/nrow(all_tpex)
+length(unique(Tri_16_p$V4))/nrow(all_tpex)
+
+
+tri_both <- unique(Tri_6_p$V14[Tri_6_p$V14 %in% Tri_16_p$V14]) 
+dmso_both <- unique(DMSO_6_p$V14[DMSO_6_p$V14 %in% DMSO_16_p$V14])
+
+tri_only <- tri_both[!(tri_both %in% dmso_both)]
+dmso_only <- tri_both[!(dmso_both %in% tri_both)]
+
+
+all <- tri_both[tri_both %in% dmso_both]
+```
+
+
+
+
+```{r}
+co <- 500
+
+all_dmso_6 <- read.table(paste0('../../data/Cut_run/co', co,'/4-D3-6hrs-DMSO-Rb-4C_S27_mm10_nodm6.narrowPeak'), skip= 1)
+all_dmso_16 <- read.table(paste0('../../data/Cut_run/co', co, '/10-D3-16hrs-DMSO-Rb-4C_S1_mm10_nodm6.narrowPeak'), skip= 1)
+all_tri_6 <- read.table(paste0('../../data/Cut_run/co', co, '/5-D3-6hrs-Trilaciclib-Rb-4C_S28_mm10_nodm6.narrowPeak'), skip= 1)
+all_tri_16 <- read.table(paste0('../../data/Cut_run/co', co, '/11-D3-16hrs-Trilaciclib-Rb-4C_S2_mm10_nodm6.narrowPeak'), skip= 1)
+
+DMSO_6_p <- read.table(paste0('../../data/Cut_run/co', co, '/4_6hrs_DMSO_Doc21p_annotated.bed'))
+DMSO_16_p <- read.table(paste0('../../data/Cut_run/co', co, '/10_16hrs_DMSO_Doc21p_annotated.bed'))
+Tri_6_p <- read.table(paste0('../../data/Cut_run/co', co, '/5_6hrs_Tri_Doc21p_annotated.bed'))
+Tri_16_p <- read.table(paste0('../../data/Cut_run/co', co, '/11_16hrs_Tri_Doc21p_annotated.bed'))
+
+DMSO_6_n <- read.table(paste0('../../data/Cut_run/co', co, '/4_6hrs_DMSO_Doc21n_annotated.bed'))
+DMSO_16_n <- read.table(paste0('../../data/Cut_run/co', co, '/10_16hrs_DMSO_Doc21n_annotated.bed'))
+Tri_6_n <- read.table(paste0('../../data/Cut_run/co', co, '/5_6hrs_Tri_Doc21n_annotated.bed'))
+Tri_16_n <- read.table(paste0('../../data/Cut_run/co', co, '/11_16hrs_Tri_Doc21n_annotated.bed'))
+
+df1p <- data.frame(npeaks = nrow(all_dmso_6),nintersect = length(unique(DMSO_6_p$V4)), percent = length(unique(DMSO_6_p$V4))/nrow(all_dmso_6),  sample = 'dmso_6', cutoff = co)
+df2p <- data.frame(npeaks = nrow(all_tri_16),nintersect = length(unique(Tri_16_p$V4)), percent = length(unique(Tri_16_p$V4))/nrow(all_tri_16),  sample = 'tri_16', cutoff = co)
+df3p<- data.frame(npeaks = nrow(all_dmso_16),nintersect = length(unique(DMSO_16_p$V4)), percent = length(unique(DMSO_16_p$V4))/nrow(all_dmso_16),  sample = 'dmso_16', cutoff = co)
+df4p <- data.frame(npeaks = nrow(all_tri_6), nintersect = length(unique(Tri_6_p$V4)), percent = length(unique(Tri_6_p$V4))/nrow(all_tri_6),  sample = 'tri_6', cutoff = co)
+
+df1n <- data.frame(npeaks = nrow(all_dmso_6),nintersect = length(unique(DMSO_6_n$V4)), percent = length(unique(DMSO_6_n$V4))/nrow(all_dmso_6),  sample = 'dmso_6', cutoff = co)
+df2n <- data.frame(npeaks = nrow(all_tri_16),nintersect = length(unique(Tri_16_n$V4)), percent = length(unique(Tri_16_n$V4))/nrow(all_tri_16),  sample = 'tri_16', cutoff = co)
+df3n <- data.frame(npeaks = nrow(all_dmso_16),nintersect = length(unique(DMSO_16_n$V4)), percent = length(unique(DMSO_16_n$V4))/nrow(all_dmso_16),  sample = 'dmso_16', cutoff = co)
+df4n <- data.frame(npeaks = nrow(all_tri_6), nintersect = length(unique(Tri_6_n$V4)), percent = length(unique(Tri_6_n$V4))/nrow(all_tri_6),  sample = 'tri_6', cutoff = co)
+
+df500p <- rbind(df1p,df2p,df3p,df4p)
+df500n <- rbind(df1n,df2n,df3n,df4n)
+
+length(unique(DMSO_6_p$V4))/nrow(all_tpex)
+length(unique(DMSO_16_p$V4))/nrow(all_tpex)
+length(unique(Tri_6_p$V4))/nrow(all_tpex)
+length(unique(Tri_16_p$V4))/nrow(all_tpex)
+
+
+tri_both <- unique(Tri_6_p$V14[Tri_6_p$V14 %in% Tri_16_p$V14]) 
+dmso_both <- unique(DMSO_6_p$V14[DMSO_6_p$V14 %in% DMSO_16_p$V14])
+
+tri_only <- tri_both[!(tri_both %in% dmso_both)]
+dmso_only <- tri_both[!(dmso_both %in% tri_both)]
+
+
+all <- tri_both[tri_both %in% dmso_both]
+```
+
+
+
+
+```{r}
+co <- 750
+
+all_dmso_6 <- read.table(paste0('../../data/Cut_run/co', co,'/4-D3-6hrs-DMSO-Rb-4C_S27_mm10_nodm6.narrowPeak'), skip= 1)
+all_dmso_16 <- read.table(paste0('../../data/Cut_run/co', co, '/10-D3-16hrs-DMSO-Rb-4C_S1_mm10_nodm6.narrowPeak'), skip= 1)
+all_tri_6 <- read.table(paste0('../../data/Cut_run/co', co, '/5-D3-6hrs-Trilaciclib-Rb-4C_S28_mm10_nodm6.narrowPeak'), skip= 1)
+all_tri_16 <- read.table(paste0('../../data/Cut_run/co', co, '/11-D3-16hrs-Trilaciclib-Rb-4C_S2_mm10_nodm6.narrowPeak'), skip= 1)
+
+DMSO_6_p <- read.table(paste0('../../data/Cut_run/co', co, '/4_6hrs_DMSO_Doc21p_annotated.bed'))
+DMSO_16_p <- read.table(paste0('../../data/Cut_run/co', co, '/10_16hrs_DMSO_Doc21p_annotated.bed'))
+Tri_6_p <- read.table(paste0('../../data/Cut_run/co', co, '/5_6hrs_Tri_Doc21p_annotated.bed'))
+Tri_16_p <- read.table(paste0('../../data/Cut_run/co', co, '/11_16hrs_Tri_Doc21p_annotated.bed'))
+
+DMSO_6_n <- read.table(paste0('../../data/Cut_run/co', co, '/4_6hrs_DMSO_Doc21n_annotated.bed'))
+DMSO_16_n <- read.table(paste0('../../data/Cut_run/co', co, '/10_16hrs_DMSO_Doc21n_annotated.bed'))
+Tri_6_n <- read.table(paste0('../../data/Cut_run/co', co, '/5_6hrs_Tri_Doc21n_annotated.bed'))
+Tri_16_n <- read.table(paste0('../../data/Cut_run/co', co, '/11_16hrs_Tri_Doc21n_annotated.bed'))
+
+df1p <- data.frame(npeaks = nrow(all_dmso_6),nintersect = length(unique(DMSO_6_p$V4)), percent = length(unique(DMSO_6_p$V4))/nrow(all_dmso_6),  sample = 'dmso_6', cutoff = co)
+df2p <- data.frame(npeaks = nrow(all_tri_16),nintersect = length(unique(Tri_16_p$V4)), percent = length(unique(Tri_16_p$V4))/nrow(all_tri_16),  sample = 'tri_16', cutoff = co)
+df3p<- data.frame(npeaks = nrow(all_dmso_16),nintersect = length(unique(DMSO_16_p$V4)), percent = length(unique(DMSO_16_p$V4))/nrow(all_dmso_16),  sample = 'dmso_16', cutoff = co)
+df4p <- data.frame(npeaks = nrow(all_tri_6), nintersect = length(unique(Tri_6_p$V4)), percent = length(unique(Tri_6_p$V4))/nrow(all_tri_6),  sample = 'tri_6', cutoff = co)
+
+df1n <- data.frame(npeaks = nrow(all_dmso_6),nintersect = length(unique(DMSO_6_n$V4)), percent = length(unique(DMSO_6_n$V4))/nrow(all_dmso_6),  sample = 'dmso_6', cutoff = co)
+df2n <- data.frame(npeaks = nrow(all_tri_16),nintersect = length(unique(Tri_16_n$V4)), percent = length(unique(Tri_16_n$V4))/nrow(all_tri_16),  sample = 'tri_16', cutoff = co)
+df3n <- data.frame(npeaks = nrow(all_dmso_16),nintersect = length(unique(DMSO_16_n$V4)), percent = length(unique(DMSO_16_n$V4))/nrow(all_dmso_16),  sample = 'dmso_16', cutoff = co)
+df4n <- data.frame(npeaks = nrow(all_tri_6), nintersect = length(unique(Tri_6_n$V4)), percent = length(unique(Tri_6_n$V4))/nrow(all_tri_6),  sample = 'tri_6', cutoff = co)
+
+df750p <- rbind(df1p,df2p,df3p,df4p)
+df750n <- rbind(df1n,df2n,df3n,df4n)
+
+length(unique(DMSO_6_p$V4))/nrow(all_tpex)
+length(unique(DMSO_16_p$V4))/nrow(all_tpex)
+length(unique(Tri_6_p$V4))/nrow(all_tpex)
+length(unique(Tri_16_p$V4))/nrow(all_tpex)
+
+
+tri_both <- unique(Tri_6_p$V14[Tri_6_p$V14 %in% Tri_16_p$V14]) 
+dmso_both <- unique(DMSO_6_p$V14[DMSO_6_p$V14 %in% DMSO_16_p$V14])
+
+tri_only <- tri_both[!(tri_both %in% dmso_both)]
+dmso_only <- tri_both[!(dmso_both %in% tri_both)]
+
+
+all <- tri_both[tri_both %in% dmso_both]
+```
+
+
+
+```{r}
+co <- 1000
+
+all_dmso_6 <- read.table(paste0('../../data/Cut_run/co', co,'/4-D3-6hrs-DMSO-Rb-4C_S27_mm10_nodm6.narrowPeak'), skip= 1)
+all_dmso_16 <- read.table(paste0('../../data/Cut_run/co', co, '/10-D3-16hrs-DMSO-Rb-4C_S1_mm10_nodm6.narrowPeak'), skip= 1)
+all_tri_6 <- read.table(paste0('../../data/Cut_run/co', co, '/5-D3-6hrs-Trilaciclib-Rb-4C_S28_mm10_nodm6.narrowPeak'), skip= 1)
+all_tri_16 <- read.table(paste0('../../data/Cut_run/co', co, '/11-D3-16hrs-Trilaciclib-Rb-4C_S2_mm10_nodm6.narrowPeak'), skip= 1)
+
+DMSO_6_p <- read.table(paste0('../../data/Cut_run/co', co, '/4_6hrs_DMSO_Doc21p_annotated.bed'))
+DMSO_16_p <- read.table(paste0('../../data/Cut_run/co', co, '/10_16hrs_DMSO_Doc21p_annotated.bed'))
+Tri_6_p <- read.table(paste0('../../data/Cut_run/co', co, '/5_6hrs_Tri_Doc21p_annotated.bed'))
+Tri_16_p <- read.table(paste0('../../data/Cut_run/co', co, '/11_16hrs_Tri_Doc21p_annotated.bed'))
+
+DMSO_6_n <- read.table(paste0('../../data/Cut_run/co', co, '/4_6hrs_DMSO_Doc21n_annotated.bed'))
+DMSO_16_n <- read.table(paste0('../../data/Cut_run/co', co, '/10_16hrs_DMSO_Doc21n_annotated.bed'))
+Tri_6_n <- read.table(paste0('../../data/Cut_run/co', co, '/5_6hrs_Tri_Doc21n_annotated.bed'))
+Tri_16_n <- read.table(paste0('../../data/Cut_run/co', co, '/11_16hrs_Tri_Doc21n_annotated.bed'))
+
+df1p <- data.frame(npeaks = nrow(all_dmso_6),nintersect = length(unique(DMSO_6_p$V4)), percent = length(unique(DMSO_6_p$V4))/nrow(all_dmso_6),  sample = 'dmso_6', cutoff = co)
+df2p <- data.frame(npeaks = nrow(all_tri_16),nintersect = length(unique(Tri_16_p$V4)), percent = length(unique(Tri_16_p$V4))/nrow(all_tri_16),  sample = 'tri_16', cutoff = co)
+df3p<- data.frame(npeaks = nrow(all_dmso_16),nintersect = length(unique(DMSO_16_p$V4)), percent = length(unique(DMSO_16_p$V4))/nrow(all_dmso_16),  sample = 'dmso_16', cutoff = co)
+df4p <- data.frame(npeaks = nrow(all_tri_6), nintersect = length(unique(Tri_6_p$V4)), percent = length(unique(Tri_6_p$V4))/nrow(all_tri_6),  sample = 'tri_6', cutoff = co)
+
+df1n <- data.frame(npeaks = nrow(all_dmso_6),nintersect = length(unique(DMSO_6_n$V4)), percent = length(unique(DMSO_6_n$V4))/nrow(all_dmso_6),  sample = 'dmso_6', cutoff = co)
+df2n <- data.frame(npeaks = nrow(all_tri_16),nintersect = length(unique(Tri_16_n$V4)), percent = length(unique(Tri_16_n$V4))/nrow(all_tri_16),  sample = 'tri_16', cutoff = co)
+df3n <- data.frame(npeaks = nrow(all_dmso_16),nintersect = length(unique(DMSO_16_n$V4)), percent = length(unique(DMSO_16_n$V4))/nrow(all_dmso_16),  sample = 'dmso_16', cutoff = co)
+df4n <- data.frame(npeaks = nrow(all_tri_6), nintersect = length(unique(Tri_6_n$V4)), percent = length(unique(Tri_6_n$V4))/nrow(all_tri_6),  sample = 'tri_6', cutoff = co)
+
+df1000p <- rbind(df1p,df2p,df3p,df4p)
+df1000n <- rbind(df1n,df2n,df3n,df4n)
+
+length(unique(DMSO_6_p$V4))/nrow(all_tpex)
+length(unique(DMSO_16_p$V4))/nrow(all_tpex)
+length(unique(Tri_6_p$V4))/nrow(all_tpex)
+length(unique(Tri_16_p$V4))/nrow(all_tpex)
+
+
+tri_both <- unique(Tri_6_p$V14[Tri_6_p$V14 %in% Tri_16_p$V14]) 
+dmso_both <- unique(DMSO_6_p$V14[DMSO_6_p$V14 %in% DMSO_16_p$V14])
+
+tri_only <- tri_both[!(tri_both %in% dmso_both)]
+dmso_only <- tri_both[!(dmso_both %in% tri_both)]
+
+
+all <- tri_both[tri_both %in% dmso_both]
+```
+
+```{r}
+# library(clusterProfiler)
+# library("org.Mm.eg.db",  character.only = TRUE)
+# library(DOSE)
+# 
+# tri_ids <-bitr(tri_both, fromType = "SYMBOL", toType = "ENTREZID", OrgDb="org.Mm.eg.db")
+# dmso_ids <-bitr(dmso_both, fromType = "SYMBOL", toType = "ENTREZID", OrgDb="org.Mm.eg.db")
+# 
+# tri_go <- enrichGO(tri_ids$SYMBOL, OrgDb = 'org.Mm.eg.db', keyType = "SYMBOL")
+# tri_kegg <- enrichKEGG(tri_ids$ENTREZID, organism = 'mmu')
+```
+
+```{r}
+library(ggplot2)
+dfp <- rbind(df250p, df350p, df400p, df450p, df500p, df750p, df1000p)
+dfn <- rbind(df250n, df350n, df400n, df450n, df500n, df750n, df1000n)
+
+ggplot(data = dfp, aes(x = cutoff, y = npeaks, color = sample)) + geom_point() + geom_line()
+ggplot(data = dfp, aes(x = cutoff, y = nintersect, color = sample)) + geom_point() + geom_line()
+ggplot(data = dfp, aes(x = cutoff, y = percent, color = sample)) + geom_point() + geom_line()
+
+
+ggplot(data = dfn) + geom_point(aes(x = cutoff, y = npeaks, color = sample)) + geom_line(aes(x = cutoff, y = npeaks, color = sample))
+ggplot(data = dfn, aes(x = cutoff, y = nintersect, color = sample)) + geom_point() + geom_line()
+ggplot(data = dfn) + geom_point(aes(x = cutoff, y = percent, color = sample)) + geom_line(aes(x = cutoff, y = percent, color = sample))
+
+```
+

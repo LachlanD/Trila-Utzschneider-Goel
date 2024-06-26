@@ -1,0 +1,420 @@
+---
+title: "01_preprocess"
+author: "Lachlan Dryburgh"
+date: "2024-05-07"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+library(Seurat)
+library(scRepertoire)
+
+```
+
+```{r}
+path <- '~/scratch/lachlan/Utz/data/C11_single/cellranger/outs/per_sample_outs/cellranger/count/sample_filtered_feature_bc_matrix/'
+counts <- Read10X(path)
+seu_c11 <- CreateSeuratObject(counts$`Gene Expression`, min.cells = 3, project =  "c11_single")
+
+seu_c11[['HTO']] <- CreateAssayObject(counts$`Antibody Capture`)
+seu_c11[['HTO2']] <- CreateAssayObject(counts$`Antibody Capture`[7:12,])
+```
+```{r}
+seu_c11 <- NormalizeData(seu_c11, assay = 'HTO2' , normalization.method = 'CLR')
+
+seu_c11 <- HTODemux(seu_c11, assay = "HTO2", positive.quantile = 0.99)
+
+table(seu_c11$HTO2_classification.global)
+cs1 <- table(seu_c11$HTO2_classification.global)
+
+
+HTOHeatmap(seu_c11, assay = "HTO2")
+```
+```{r}
+seu_c11 <- subset(seu_c11, subset =  HTO2_classification.global == 'Singlet')
+
+tcr_c11 <- read.csv("~/scratch/lachlan/Utz/data/C11_single/cellranger/outs/per_sample_outs/cellranger/vdj_t/filtered_contig_annotations.csv")
+
+contig_list <- createHTOContigList(tcr_c11, seu_c11, group.by = 'HTO2_classification', multi.run = T)
+
+comb <- combineTCR(contig_list, samples = c("C0304-Hashtag-4", "C0305-Hashtag-5", "C0306-Hashtag-6"), filterMulti = T )
+
+
+quantContig(comb, cloneCall="aa", scale = T, chain ='both')
+lengthContig(comb, cloneCall="aa", chain = "both") 
+
+clonalHomeostasis(comb, cloneCall = "gene", 
+                  cloneTypes = c(Rare = 1e-04, 
+                                 Small = 0.001, 
+                                 Medium = 0.01, 
+                                 Large = 0.1, 
+                                 Hyperexpanded = 1))
+
+```
+
+```{r}
+for (i in seq_along(comb)) {
+    comb[[i]] <- stripBarcode(comb[[i]], column = 1, connector = "_", num_connects = 2)
+}
+
+seu_c11 <- combineExpression(comb, seu_c11, 
+                  cloneCall="strict", 
+                  group.by = "none",  
+                  proportion = FALSE, 
+                  cloneTypes = c(Single=1, Small=5, Medium=20, Large=100, Hyperexpanded=500))
+```
+
+```{r}
+path <- '~/scratch/lachlan/Utz/data/C41_single/cellranger/outs/per_sample_outs/cellranger/count/sample_filtered_feature_bc_matrix/'
+counts <- Read10X(path)
+seu_c41 <- CreateSeuratObject(counts$`Gene Expression`, min.cells = 3, project =  "c41_single")
+
+seu_c41[['HTO']] <- CreateAssayObject(counts$`Antibody Capture`)
+seu_c41[['HTO2']] <- CreateAssayObject(counts$`Antibody Capture`[10:12,])
+```
+
+```{r}
+seu_c41 <- NormalizeData(seu_c41, assay = 'HTO2' , normalization.method = 'CLR')
+
+seu_c41 <- HTODemux(seu_c41, assay = "HTO2", positive.quantile = 0.99)
+
+table(seu_c41$HTO2_classification.global)
+cs4 <- table(seu_c41$HTO2_classification.global)
+
+
+HTOHeatmap(seu_c41, assay = "HTO2")
+```
+
+```{r}
+seu_c41 <- subset(seu_c41, subset =  HTO2_classification.global == 'Singlet')
+
+tcr_c41 <- read.csv("~/scratch/lachlan/Utz/data/C41_single/cellranger/outs/per_sample_outs/cellranger/vdj_t/filtered_contig_annotations.csv")
+
+contig_list <- createHTOContigList(tcr_c41, seu_c41, group.by = 'HTO2_classification', multi.run = T)
+
+comb <- combineTCR(contig_list, samples = c("C0304-Hashtag-4", "C0305-Hashtag-5", "C0306-Hashtag-6"), filterMulti = T )
+
+quantContig(comb, cloneCall="aa", scale = T, chain ='both')
+lengthContig(comb, cloneCall="aa", chain = "both") 
+
+clonalHomeostasis(comb, cloneCall = "gene", 
+                  cloneTypes = c(Rare = 1e-04, 
+                                 Small = 0.001, 
+                                 Medium = 0.01, 
+                                 Large = 0.1, 
+                                 Hyperexpanded = 1))
+```
+
+
+```{r}
+for (i in seq_along(comb)) {
+    comb[[i]] <- stripBarcode(comb[[i]], column = 1, connector = "_", num_connects = 2)
+}
+
+seu_c41 <- combineExpression(comb, seu_c41, 
+                  cloneCall="strict", 
+                  group.by = "none",  
+                  proportion = FALSE, 
+                  cloneTypes = c(Single=1, Small=5, Medium=20, Large=100, Hyperexpanded=500))
+```
+```{r}
+path <- '~/scratch/lachlan/Utz/data/C71_single/cellranger/outs/per_sample_outs/cellranger/count/sample_filtered_feature_bc_matrix/'
+counts <- Read10X(path)
+seu_c71 <- CreateSeuratObject(counts$`Gene Expression`, min.cells = 3, project =  "c71_single")
+
+seu_c71[['HTO']] <- CreateAssayObject(counts$`Antibody Capture`)
+seu_c71[['HTO2']] <- CreateAssayObject(counts$`Antibody Capture`[10:12,])
+```
+
+```{r}
+seu_c71 <- NormalizeData(seu_c71, assay = 'HTO2' , normalization.method = 'CLR')
+
+seu_c71 <- HTODemux(seu_c71, assay = "HTO2", positive.quantile = 0.99)
+
+table(seu_c71$HTO2_classification.global)
+cs7 <- table(seu_c71$HTO2_classification.global)
+
+
+HTOHeatmap(seu_c71, assay = "HTO2")
+```
+
+```{r}
+seu_c71 <- subset(seu_c71, subset =  HTO2_classification.global == 'Singlet')
+
+tcr_c71 <- read.csv("~/scratch/lachlan/Utz/data/C71_single/cellranger/outs/per_sample_outs/cellranger/vdj_t/filtered_contig_annotations.csv")
+
+contig_list <- createHTOContigList(tcr_c71, seu_c71, group.by = 'HTO2_classification', multi.run = T)
+
+comb <- combineTCR(contig_list, samples = c("C0304-Hashtag-4", "C0305-Hashtag-5", "C0306-Hashtag-6"), filterMulti = T )
+
+quantContig(comb, cloneCall="aa", scale = T, chain ='both')
+lengthContig(comb, cloneCall="aa", chain = "both") 
+
+clonalHomeostasis(comb, cloneCall = "gene", 
+                  cloneTypes = c(Rare = 1e-04, 
+                                 Small = 0.001, 
+                                 Medium = 0.01, 
+                                 Large = 0.1, 
+                                 Hyperexpanded = 1))
+```
+
+
+```{r}
+for (i in seq_along(comb)) {
+    comb[[i]] <- stripBarcode(comb[[i]], column = 1, connector = "_", num_connects = 2)
+}
+
+seu_c71 <- combineExpression(comb, seu_c71, 
+                  cloneCall="strict", 
+                  group.by = "none",  
+                  proportion = FALSE, 
+                  cloneTypes = c(Single=1, Small=5, Medium=20, Large=100, Hyperexpanded=500))
+```
+
+
+
+
+```{r}
+path <- '~/scratch/lachlan/Utz/data/T11_single/cellranger/outs/per_sample_outs/cellranger/count/sample_filtered_feature_bc_matrix/'
+counts <- Read10X(path)
+seu_t11 <- CreateSeuratObject(counts$`Gene Expression`, min.cells = 3, project =  "t11_single")
+
+seu_t11[['HTO']] <- CreateAssayObject(counts$`Antibody Capture`)
+seu_t11[['HTO2']] <- CreateAssayObject(counts$`Antibody Capture`[7:9,])
+```
+```{r}
+seu_t11 <- NormalizeData(seu_t11, assay = 'HTO2' , normalization.method = 'CLR')
+
+seu_t11 <- HTODemux(seu_t11, assay = "HTO2", positive.quantile = 0.99)
+
+table(seu_t11$HTO2_classification.global)
+ts1 <- table(seu_t11$HTO2_classification.global)
+
+
+HTOHeatmap(seu_t11, assay = "HTO2")
+```
+
+```{r}
+seu_t11 <- subset(seu_t11, subset =  HTO2_classification.global == 'Singlet')
+
+tcr_t11 <- read.csv("~/scratch/lachlan/Utz/data/T11_single/cellranger/outs/per_sample_outs/cellranger/vdj_t/filtered_contig_annotations.csv")
+
+contig_list <- createHTOContigList(tcr_t11, seu_t11, group.by = 'HTO2_classification', multi.run = T)
+
+comb <- combineTCR(contig_list, samples = c("C0301-Hashtag-1", "C0302-Hashtag-2", "C0303-Hashtag-3"), filterMulti = T )
+
+quantContig(comb, cloneCall="aa", scale = T, chain ='both')
+lengthContig(comb, cloneCall="aa", chain = "both") 
+
+clonalHomeostasis(comb, cloneCall = "gene", 
+                  cloneTypes = c(Rare = 1e-04, 
+                                 Small = 0.001, 
+                                 Medium = 0.01, 
+                                 Large = 0.1, 
+                                 Hyperexpanded = 1))
+```
+
+
+```{r}
+for (i in seq_along(comb)) {
+    comb[[i]] <- stripBarcode(comb[[i]], column = 1, connector = "_", num_connects = 2)
+}
+
+seu_t11 <- combineExpression(comb, seu_t11, 
+                  cloneCall="strict", 
+                  group.by = "none",  
+                  proportion = FALSE, 
+                  cloneTypes = c(Single=1, Small=5, Medium=20, Large=100, Hyperexpanded=500))
+```
+
+```{r}
+path <- '~/scratch/lachlan/Utz/data/T41_single/cellranger/outs/per_sample_outs/cellranger/count/sample_filtered_feature_bc_matrix/'
+counts <- Read10X(path)
+seu_t41 <- CreateSeuratObject(counts$`Gene Expression`, min.cells = 3, project =  "t41_single")
+
+seu_t41[['HTO']] <- CreateAssayObject(counts$`Antibody Capture`)
+seu_t41[['HTO2']] <- CreateAssayObject(counts$`Antibody Capture`[7:9,])
+```
+```{r}
+seu_t41 <- NormalizeData(seu_t41, assay = 'HTO2' , normalization.method = 'CLR')
+
+seu_t41 <- HTODemux(seu_t41, assay = "HTO2", positive.quantile = 0.99)
+
+table(seu_t41$HTO2_classification.global)
+ts4 <- table(seu_t41$HTO2_classification.global)
+
+
+HTOHeatmap(seu_t41, assay = "HTO2")
+```
+
+```{r}
+seu_t41 <- subset(seu_t41, subset =  HTO2_classification.global == 'Singlet')
+
+tcr_t41 <- read.csv("~/scratch/lachlan/Utz/data/T41_single/cellranger/outs/per_sample_outs/cellranger/vdj_t/filtered_contig_annotations.csv")
+
+contig_list <- createHTOContigList(tcr_t41, seu_t41, group.by = 'HTO2_classification', multi.run = T)
+
+comb <- combineTCR(contig_list, samples = c("C0301-Hashtag-1", "C0302-Hashtag-2", "C0303-Hashtag-3"), filterMulti = T )
+
+quantContig(comb, cloneCall="aa", scale = T, chain ='both')
+lengthContig(comb, cloneCall="aa", chain = "both") 
+
+clonalHomeostasis(comb, cloneCall = "gene", 
+                  cloneTypes = c(Rare = 1e-04, 
+                                 Small = 0.001, 
+                                 Medium = 0.01, 
+                                 Large = 0.1, 
+                                 Hyperexpanded = 1))
+```
+
+
+```{r}
+for (i in seq_along(comb)) {
+    comb[[i]] <- stripBarcode(comb[[i]], column = 1, connector = "_", num_connects = 2)
+}
+
+seu_t41 <- combineExpression(comb, seu_t41, 
+                  cloneCall="strict", 
+                  group.by = "none",  
+                  proportion = FALSE, 
+                  cloneTypes = c(Single=1, Small=5, Medium=20, Large=100, Hyperexpanded=500))
+```
+
+```{r}
+path <- '~/scratch/lachlan/Utz/data/T71_single/cellranger/outs/per_sample_outs/cellranger/count/sample_filtered_feature_bc_matrix/'
+counts <- Read10X(path)
+seu_t71 <- CreateSeuratObject(counts$`Gene Expression`, min.cells = 3, project =  "t71_single")
+
+seu_t71[['HTO']] <- CreateAssayObject(counts$`Antibody Capture`)
+seu_t71[['HTO2']] <- CreateAssayObject(counts$`Antibody Capture`[7:9,])
+```
+```{r}
+seu_t71 <- NormalizeData(seu_t71, assay = 'HTO2' , normalization.method = 'CLR')
+
+seu_t71 <- HTODemux(seu_t71, assay = "HTO2", positive.quantile = 0.99)
+
+table(seu_t71$HTO2_classification.global)
+ts7 <- table(seu_t71$HTO2_classification.global)
+
+
+HTOHeatmap(seu_t71, assay = "HTO2")
+```
+
+```{r}
+seu_t71 <- subset(seu_t71, subset =  HTO2_classification.global == 'Singlet')
+
+tcr_t71 <- read.csv("~/scratch/lachlan/Utz/data/T71_single/cellranger/outs/per_sample_outs/cellranger/vdj_t/filtered_contig_annotations.csv")
+
+contig_list <- createHTOContigList(tcr_t71, seu_t71, group.by = 'HTO2_classification', multi.run = T)
+
+comb <- combineTCR(contig_list, samples = c("C0301-Hashtag-1", "C0302-Hashtag-2", "C0303-Hashtag-3"), filterMulti = T )
+
+quantContig(comb, cloneCall="aa", scale = T, chain ='both')
+lengthContig(comb, cloneCall="aa", chain = "both") 
+
+clonalHomeostasis(comb, cloneCall = "gene", 
+                  cloneTypes = c(Rare = 1e-04, 
+                                 Small = 0.001, 
+                                 Medium = 0.01, 
+                                 Large = 0.1, 
+                                 Hyperexpanded = 1))
+```
+
+
+```{r}
+for (i in seq_along(comb)) {
+    comb[[i]] <- stripBarcode(comb[[i]], column = 1, connector = "_", num_connects = 2)
+}
+
+seu_t71 <- combineExpression(comb, seu_t71, 
+                  cloneCall="strict", 
+                  group.by = "none",  
+                  proportion = FALSE, 
+                  cloneTypes = c(Single=1, Small=5, Medium=20, Large=100, Hyperexpanded=500))
+```
+
+```{r}
+seu_c11$percent_mito <- PercentageFeatureSet(seu_c11, pattern = "^mt-")
+seu_c11$percent_ribo <- PercentageFeatureSet(seu_c11, pattern = 'Rp[sl]')
+
+FeatureScatter(seu_c11, feature1 = "nCount_RNA", feature2 = "nFeature_RNA")
+FeatureScatter(seu_c11, feature1 = "nCount_RNA", feature2 = "percent_mito")
+FeatureScatter(seu_c11, feature1 = "nCount_RNA", feature2 = "percent_ribo")
+```
+```{r}
+seu_c41$percent_mito <- PercentageFeatureSet(seu_c41, pattern = "^mt-")
+seu_c41$percent_ribo <- PercentageFeatureSet(seu_c41, pattern = 'Rp[sl]')
+
+FeatureScatter(seu_c41, feature1 = "nCount_RNA", feature2 = "nFeature_RNA")
+FeatureScatter(seu_c41, feature1 = "nCount_RNA", feature2 = "percent_mito")
+FeatureScatter(seu_c41, feature1 = "nCount_RNA", feature2 = "percent_ribo")
+```
+```{r}
+seu_c71$percent_mito <- PercentageFeatureSet(seu_c71, pattern = "^mt-")
+seu_c71$percent_ribo <- PercentageFeatureSet(seu_c71, pattern = 'Rp[sl]')
+
+FeatureScatter(seu_c71, feature1 = "nCount_RNA", feature2 = "nFeature_RNA")
+FeatureScatter(seu_c71, feature1 = "nCount_RNA", feature2 = "percent_mito")
+FeatureScatter(seu_c71, feature1 = "nCount_RNA", feature2 = "percent_ribo")
+```
+```{r}
+seu_t11$percent_mito <- PercentageFeatureSet(seu_t11, pattern = "^mt-")
+seu_t11$percent_ribo <- PercentageFeatureSet(seu_t11, pattern = 'Rp[sl]')
+
+FeatureScatter(seu_t11, feature1 = "nCount_RNA", feature2 = "nFeature_RNA")
+FeatureScatter(seu_t11, feature1 = "nCount_RNA", feature2 = "percent_mito")
+FeatureScatter(seu_t11, feature1 = "nCount_RNA", feature2 = "percent_ribo")
+```
+```{r}
+seu_t41$percent_mito <- PercentageFeatureSet(seu_t41, pattern = "^mt-")
+seu_t41$percent_ribo <- PercentageFeatureSet(seu_t41, pattern = 'Rp[sl]')
+
+FeatureScatter(seu_t41, feature1 = "nCount_RNA", feature2 = "nFeature_RNA")
+FeatureScatter(seu_t41, feature1 = "nCount_RNA", feature2 = "percent_mito")
+FeatureScatter(seu_t41, feature1 = "nCount_RNA", feature2 = "percent_ribo")
+```
+```{r}
+seu_t71$percent_mito <- PercentageFeatureSet(seu_t71, pattern = "^mt-")
+seu_t71$percent_ribo <- PercentageFeatureSet(seu_t71, pattern = 'Rp[sl]')
+
+FeatureScatter(seu_t71, feature1 = "nCount_RNA", feature2 = "nFeature_RNA")
+FeatureScatter(seu_t71, feature1 = "nCount_RNA", feature2 = "percent_mito")
+FeatureScatter(seu_t71, feature1 = "nCount_RNA", feature2 = "percent_ribo")
+```
+
+```{r}
+seu <- merge(seu_c11, list(seu_c41, seu_c71, seu_t11, seu_t41, seu_t71))
+FeatureScatter(seu, feature1 = "nCount_RNA", feature2 = "nFeature_RNA")
+FeatureScatter(seu, feature1 = "nCount_RNA", feature2 = "percent_mito")
+FeatureScatter(seu, feature1 = "nCount_RNA", feature2 = "percent_ribo")
+```
+
+
+
+```{r}
+#seu <- subset(seu, subset =  HTO2_classification.global == 'Singlet')
+VlnPlot(seu, 'percent_mito', group.by = 'orig.ident', split.by = 'HTO2_classification')
+VlnPlot(seu, 'nCount_RNA', group.by = 'orig.ident', split.by = 'HTO2_classification')
+
+```
+
+```{r}
+seu <- subset(seu, subset = percent_mito < 5)
+seu <- subset(seu, subset = nFeature_RNA < 2500)
+seu <- subset(seu, subset = nCount_RNA < 9000)
+seu <- subset(seu, subset = nFeature_RNA > 500)
+```
+
+```{r}
+FeatureScatter(seu, feature1 = "nCount_RNA", feature2 = "nFeature_RNA")
+FeatureScatter(seu, feature1 = "nCount_RNA", feature2 = "percent_mito")
+FeatureScatter(seu, feature1 = "nCount_RNA", feature2 = "percent_ribo")
+
+FeatureScatter(seu, feature1 = "nCount_RNA", feature2 = "nFeature_RNA", group.by = 'orig.ident')
+FeatureScatter(seu, feature1 = "nCount_RNA", feature2 = "percent_mito", group.by = 'orig.ident')
+FeatureScatter(seu, feature1 = "nCount_RNA", feature2 = "percent_ribo", group.by = 'orig.ident')
+```
+```{r}
+saveRDS(seu, "../output/filtered_single.rds")
+```
+

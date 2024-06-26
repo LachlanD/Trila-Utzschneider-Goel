@@ -1,0 +1,58 @@
+---
+title: "figures"
+author: "Lachlan Dryburgh"
+date: "2024-06-12"
+output: html_document
+---
+
+```{r}
+library(openxlsx)
+
+metrics <- readWorkbook("../data/utz_metrics.xlsx")
+```
+
+
+
+```{r}
+names(metrics) <- metrics[2,]
+
+
+
+metrics <- rbind(metrics[3:6,3:9], metrics[3:6,10:16], metrics[3:6,17:23]) 
+
+rownames(metrics) <- c('cs1','ts1', 'cc1','tc1','cs4','ts4','cc4','tc4','cs7','ts7','cc7','tc7')
+
+metrics$day <- c(1,1,1,1,4,4,4,4,7,7,7,7)
+metrics$sample <- rownames(metrics)
+metrics$Cells <- as.integer(metrics$Cells)
+metrics$`Reads per Cell` <- as.integer(metrics$`Reads per Cell`)
+names(metrics)[3] <- 'Confidently_mapped'
+metrics$Confidently_mapped <- as.numeric(metrics$Confidently_mapped)
+
+ggplot(metrics, aes(sample, y = Cells, fill = day)) + geom_col() + theme(legend.position="none")
+ggplot(metrics, aes(sample, y = `Reads per Cell`, fill = day)) + geom_col() + theme(legend.position="none")
+ggplot(metrics, aes(sample, y = `Confidently_mapped`, fill = day)) + geom_col() + theme(legend.position="none")
+
+
+```
+```{r}
+seu <- readRDS('../output/filtered_continuous.rds')
+seu2 <- readRDS("../output/filtered_single.rds")
+
+seu <- merge(seu, seu2)
+
+seu$experiment <- paste0(substr(seu$orig.ident, 1,1), substr(seu$orig.ident, 5,5), substr(seu$orig.ident, 2,2))
+
+df <- data.frame(experiment = seu$experiment, sample = seu$HTO2_classification)
+```
+```{r}
+ggplot(df, aes(x = experiment, fill = sample)) + geom_bar() + theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1))
+```
+```{r}
+hash <- as.data.frame(rbind(cc1,cc4,cc7, tc1,tc4,tc7,cs1,cs4,cs7,ts1,ts4,ts7))
+hash$experiment <- rownames(hash)
+
+hash %>% as_tibble %>% pivot_longer(cols = -"experiment") %>%
+  ggplot(aes(x= experiment, y = value, fill = name )) + geom_col()
+```
+
